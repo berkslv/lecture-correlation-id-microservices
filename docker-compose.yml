@@ -1,0 +1,43 @@
+version: '3'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - .docker/rabbitmq/data/:/var/lib/rabbitmq/ 
+      - .docker/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - rabbitmq
+        
+  elasticsearch:
+    image: elasticsearch:7.16.2
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      discovery.type: single-node
+    networks:
+      - elk
+
+  kibana:
+    image: kibana:7.16.2
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+networks:
+  elk:
+    driver: bridge
+  rabbitmq:
+    driver: bridge
